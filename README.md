@@ -35,14 +35,32 @@ for the primary drive only type, start sector, end sector is used
 | 0 | 0 | u8  | type enum   |
 | 1 | 5 | u32 | start sector|
 | 6 | 10| u32 | end sector  |
-| 11| 32| any | type specific data |
+| 11| 32| ... | type specific data |
 
 #### type enum
 | num | desc |
 | --- | ---- |
 | 0   | empty |
-| 1   | primary drive |
+| 1   | drive |
 ..
 
 
 ### folders
+
+folders contain entrys that point to other files or folders
+
+#### type enum
+| num | desc |
+| --- | ---- |
+| 0   | empty |
+| 1   | previous sector |
+| 2   | next sector |
+| 3   | file  |
+| 4   | folder|
+
+#### entry
+all
+| start | end | type | desc |
+| ----- | --- | ---- | ---- |
+| 0     | 0   | u8   | type enum |
+
