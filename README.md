@@ -53,14 +53,30 @@ folders contain entrys that point to other files or folders
 | num | desc |
 | --- | ---- |
 | 0   | empty |
-| 1   | previous sector |
-| 2   | next sector |
-| 3   | file  |
+| 1   | descriptor |
+| 2   | filedesc  |
+| 3   | filedata  |/
 | 4   | folder|
 
 #### entry
+all entrys are 32 bytes large
+
 all
 | start | end | type | desc |
 | ----- | --- | ---- | ---- |
 | 0     | 0   | u8   | type enum |
 
+descriptor - folders cant be of a finite size, this will point to the previous sector for the folder (or 0 if nil) and the next sector of the folder (or 0 if nil) this should be the first entry
+| start | end | type | desc |
+| ----- | --- | ---- | ---- |
+| 1     | 8   | u64  | previous sector |
+| 9     | 17  | u64  | next sector |
+| 18    | 31  | ?    | unused |
+
+filedata - gives a range of sectors associated with a file through a fileID
+| start | end | type | desc |
+| ----- | --- | ---- | ---- |
+| 1     | 8   | u64  | first sector in range |
+| 9     | 17  | u64  | last sector in range  |
+| 18    | 20  | u16  | fileID |
+| 21    | 24  | u32  | 
