@@ -2,7 +2,11 @@
 
 big fancy tree
 
+little endian
+
 simple (hopefully)
+
+im bad at writing these docs, there are C definitons for the structures in ``kfs.h`` and hopefully reading ``kfs.py`` should be simple
 
 ## overview
 LBA
@@ -27,14 +31,14 @@ each entry is 32 bytes long leaving 16 entries
 
 empty entrys have the first byte as zero
 
-for the primary drive only type, start sector, end sector is used
+if blank set first entry type enum to 254
 
 #### entry
 | start | end | type | desc |
 | ----- | --- | ---- | ---- |
 | 0 | 0 | u8  | type enum   |
-| 1 | 5 | u32 | start sector|
-| 6 | 10| u32 | end sector  |
+| 1 | 8 | u64 | start sector|
+| 9 | 17| u64 | end sector  |
 | 11| 32| ... | type specific data |
 
 #### type enum
@@ -42,6 +46,7 @@ for the primary drive only type, start sector, end sector is used
 | --- | ---- |
 | 0   | empty |
 | 1   | drive |
+| 254 | blank fs extender |
 ..
 
 
@@ -55,7 +60,7 @@ folders contain entrys that point to other files or folders
 | 0   | empty |
 | 1   | descriptor |
 | 2   | filedesc  |
-| 3   | filedata  |/
+| 3   | filedata  |
 | 4   | folder|
 
 #### entry
@@ -79,4 +84,5 @@ filedata - gives a range of sectors associated with a file through a fileID
 | 1     | 8   | u64  | first sector in range |
 | 9     | 17  | u64  | last sector in range  |
 | 18    | 20  | u16  | fileID |
-| 21    | 24  | u32  | 
+| 21    | 28  | u64  | the number of ``filedata`` entrys for this file before this entry |
+| 25    | 31  | ?    | unused |
