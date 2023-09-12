@@ -86,3 +86,7 @@ filedata - gives a range of sectors associated with a file through a fileID
 | 18    | 20  | u16  | fileID |
 | 21    | 28  | u64  | the number of ``filedata`` entrys for this file before this entry |
 | 25    | 31  | ?    | unused |
+
+file
+| start | end | type | desc |
+| ----- | --- | ---- | ---- |
