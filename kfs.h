@@ -11,7 +11,7 @@ struct kfs_fs_extender {
   uint8_t type; // kfs_fse_types enum
   uint64_t start;
   uint64_t end;
-  uint8_t data[15]; // any
+  uint8_t data[47]; // any
 };
 
 enum kfs_folderentry {
@@ -35,4 +35,14 @@ struct kfs_folderentry_filedata {
   uint16_t id;
   uint64_t distance;
   uint8_t blank[5];
+};
+
+struct kfs_folderentry_file {
+  uint8_t type; // kfs_folderentry enum
+  uint16_t id;
+  uint8_t encryptionmethod;
+  uint8_t compressionmethod;
+  uint64_t creationdate;
+  uint64_t modificationdate;
+  uint8_t blank[10];
 };
