@@ -6,7 +6,7 @@ little endian
 
 simple (hopefully)
 
-im bad at writing these docs, there are C definitons for the structures in ``kfs.h`` and hopefully reading ``kfs.py`` should be simple
+btw dont trust the tables in here, trust the structures in ``kfs.h`` lol
 
 ## overview
 LBA
