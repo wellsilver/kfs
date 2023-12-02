@@ -22,38 +22,9 @@ btw theres tables in kfs.h of all this stuff
 a driver would be keeping the first 10 sectors in memory
 
 ### fs extender
-unused rn
+todo
 
-this is for extending the fs past its actual hard drive
-
-like an entry in here would say that "sectors" 0-500 is the hard drive at sata:0
-
-another entry would say that "sectors" 501-600 is a specific file on a ftp server
-
-each entry is 64 bytes long leaving 8 entries
-
-empty entrys have the first byte as zero
-
-if blank set first entry type enum to 254
-
-#### entry
-| start | end | type | desc |
-| ----- | --- | ---- | ---- |
-| 0 | 0 | u8  | type enum   |
-| 1 | 8 | u64 | start sector|
-| 9 | 17| u64 | end sector  |
-| 11| 63| ... | type specific data |
-
-#### type enum
-| num | desc |
-| --- | ---- |
-| 0   | empty |
-| 1   | drive |
-| 254 | blank |
-..
-
-
-### folders
+### folder descriptor
 
 descriptor, supposed to first
 | type | desc |
@@ -76,4 +47,4 @@ directory - gives the sector where the first sector of directory is
 | u64  | first sector of directory |
 | u128 | hash of first sector of directory |
 
-### file
+### file descriptor
