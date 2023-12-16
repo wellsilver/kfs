@@ -25,8 +25,16 @@ read first sector, and use its table to verify
 | 5 | 2.56 kilobytes for bootloader |
 | 1 | fs extender |
 | 1 | "/" or first folder |
-| 2 | reserved |
+| 1 | folder "garbage bin" |
+| 1 | reserved |
 | ? | data |
+
+### garbage bin
+holds all free sectors
+unnamed files 
+when files are deleted they can appear in the "garbage bin"
+
+all files in the garbage bin are free data
 
 ### table in first sector
 
@@ -36,6 +44,7 @@ everything after this table can be code
 | 3byte | jmp to code, nop |
 | 3byte | "KFS" |
 | u16   | version = 2 |
+| u64   | sector of the file descriptor of a highlighted file |
 
 ### fs extender
 todo
@@ -49,7 +58,7 @@ descriptor, supposed to first in every sector
 | u8   | type=1 |
 | u64  | previous sector (of the folder) |
 | u64  | next sector (of the folder) |
-| u64  | blank |
+| u64  | sector where the folders name is |
 
 file - gives the sector where the file descriptor is
 | type | desc |
