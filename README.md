@@ -30,9 +30,9 @@ read first sector, and use its table to verify
 | ? | data |
 
 ### garbage bin
-holds all free sectors
-unnamed files 
-when files are deleted they can appear in the "garbage bin"
+- holds all free sectors
+- empty space are unnamed files
+- when files are deleted they can appear in the "garbage bin" and are counted as free space, but can be restored
 
 all files in the garbage bin are free data
 
