@@ -8,7 +8,7 @@ little endian
 
 simple (hopefully)
 
-hashes are cityhash128 and are optional (set to 0)
+hashes are cityhash128 and are optional (set to 0 if not present)
 
 sectors start from 1, 0 is a invalid sector.
 
@@ -34,7 +34,7 @@ read first sector, and use its table to verify
 - empty space are unnamed files
 - when files are deleted they can appear in the "garbage bin" and are counted as free space, but can be restored
 
-all files in the garbage bin are free data
+all files in the garbage bin are free data (but if they are named, they should be removed)
 
 ### table in first sector
 
