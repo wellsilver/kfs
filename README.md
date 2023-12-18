@@ -34,7 +34,7 @@ read first sector, and use its table to verify
 - empty space are unnamed files
 - when files are deleted they can appear in the "garbage bin" and are counted as free space, but can be restored
 
-all files in the garbage bin are free data (but if they are named, they should be removed)
+all files in the garbage bin are free data (but if they are named, they should be removed when used)
 
 ### table in first sector
 
@@ -64,15 +64,15 @@ file - gives the sector where the file descriptor is
 | type | desc |
 | ---- | ---- |
 | u8   | type=2 |
-| u64  | sector of first file descriptor sector |
-| u128 | hash of first file descriptor sector |
+| u64  | sector of file descriptor sector |
+| u128 | hash of file descriptor sector |
 
-directory - gives the sector where the first sector of directory is
+directory - gives the sector where the first directory sector is
 | type | desc |
 | ---- | ---- |
 | u8   | type=3 |
 | u64  | sector of first directory sector |
-| u128 | hash of first sector of directory |
+| u128 | hash of first directory sector |
 
 ### file descriptor
 a header then a table of where file data is
@@ -83,11 +83,10 @@ a header then a table of where file data is
 | u64  | epoch last modification |
 | u64  | epoch last read |
 | u64  | size in bytes      |
-| u64  | hash of origin      |
 | u8   | compression type   |
 | u8   | encryption type    |
 
-^len of the table is 82
+^len of the table is 80
 
 after the header is all file data entry's
 
