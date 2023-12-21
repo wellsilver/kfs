@@ -14,6 +14,8 @@ sectors start from 1, 0 is a invalid sector.
 
 btw theres tables in kfs.h of all this stuff which are probably easier to use and read
 
+kfs.h also has a dependency-less implementation of cityhash128 if you need it ``void kfscityhash128(char *in, int size, char out[16])``
+
 ### basic driver
 examples kfs.c and kfs.S
 

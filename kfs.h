@@ -50,7 +50,7 @@ struct kfs_file {
 };
 
 struct kfs_filenext {
-  unsigned long long blank; // uint64_t set to 0
+  unsigned long long _; // uint64_t set to 0
   unsigned long long next; // uint64_t the next sector
   char hash[16]; // cityhash128 hash of the next sector
 };
