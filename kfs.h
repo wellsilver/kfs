@@ -63,7 +63,7 @@ struct kfs_fileentry {
 
 // A dependencyless implementation of google's cityhash128. out is the uint128_t
 void kfscityhash128(char *in, int size, char out[16]) {
-  
+  // todo lmao cityhash is pretty large :( 
 }
 
 #endif
