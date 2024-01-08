@@ -11,8 +11,18 @@ class kfs:
     self.file.seek((sector-1)*512)
     return self.file.read(512)
 
-  def _makefileheader(self, name, size, creation=int(time.time()), modification=int(time.time()), lastread=int(time.time())) -> bytes:
-    pass
+  def _makefileheader(self, name:str, size:int, creation=int(time.time()), modification=int(time.time()), lastread=int(time.time())) -> bytes:
+    ret = b""
+    ret += name.ljust(40, '\0') # name
+
+    ret += creation.to_bytes(length=8,byteorder='little') # epoch creation
+    ret += modification.to_bytes(length=8,byteorder='little') # epoch last modification
+    ret += lastread.to_bytes(length=8,byteorder='little') # epoch last read
+    ret += size.to_bytes(length=8,byteorder='little') # size in bytes
+
+    ret += (0).to_bytes(byteorder='little')
+    ret += (0).to_bytes(byteorder='little')
+    return ret
 
   def _makedirfileentry(self, pos:int, hash=0):
     return b""+(2).to_bytes(byteorder='little')+pos.to_bytes(length=8,byteorder='little')+hash.to_bytes(length=16,byteorder='little')
