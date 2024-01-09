@@ -51,7 +51,12 @@ class kfs:
     self.file.write((2).to_bytes(length=2,byteorder='little')) # v2
     self.file.write((0).to_bytes(length=8,byteorder='little'))
     self.file.seek(512*5) # skip past 5 sectors which can be any data
-    self.file.write(b"" * (512*2)) # 2 empty sectors
+    self.file.write(b"\0" * (512*2)) # 2 empty sectors
+    if size > 512*11: # add a file to garbage bin with free area
+      self.file.write(self._makedirfileentry(11).ljust(512,b'\0')) # make file
+      self.file.write(b"\0" * 512)
+      self.file.write(self._makefileheader("", size-512*11))
+      self.file.write(self._makefileentry(12, size-(512*11)))
     
   def close(self):
     self.file.close()
