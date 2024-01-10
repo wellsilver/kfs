@@ -30,16 +30,15 @@ class kfs:
   def _makefileentry(self, start, end):
     pass
   
-  def __init__(self, file:FileIO, createifinvalid=True):
+  def __init__(self, file:FileIO):
     self.file = file
-    self.file.seek(3)
-    if self.file.read(3) != "kfs" and not createifinvalid:
-      raise ValueError("Not a kfs file")
-    elif self.file.read(3) != "kfs":
-      self.format()
-    
-    root = bytes(self._getsector(7))
-    garbagebin = bytes(self._getsector(8))
+
+    size = self.file.tell()
+    if size < 512*11: # 11 sectors are required
+      raise OverflowError("11 sectors (11*512 bytes) space required for kfs")
+
+    self.root = bytes(self._getsector(7))
+    self.garbagebin = bytes(self._getsector(8))
 
   def format(self):
     self.file.seek(0, os.SEEK_END)
@@ -56,7 +55,9 @@ class kfs:
       self.file.write(self._makedirfileentry(11).ljust(512,b'\0')) # make file
       self.file.write(b"\0" * 512)
       self.file.write(self._makefileheader("", size-512*11))
-      self.file.write(self._makefileentry(12, size-(512*11)))
+      self.file.write(self._makefileentry(12, size-(512*11))) 
+    else:
+      self.file.write(b"\0" * (512*2))
     
   def close(self):
     self.file.close()
