@@ -54,7 +54,7 @@ class kfs:
     if size > 512*11: # add a file to garbage bin with free area
       self.file.write(self._makedirfileentry(11).ljust(512,b'\0')) # make file
       self.file.write(b"\0" * 512)
-      self.file.write(self._makefileheader("", size-512*11))
+      self.file.write(self._makefileheader("", size-(512*11)))
       self.file.write(self._makefileentry(12, size-(512*11))) 
     else:
       self.file.write(b"\0" * (512*2))
