@@ -11,9 +11,9 @@ class kfs:
     self.file.seek((sector-1)*512)
     return self.file.read(512)
 
-  def _makefileheader(self, name:str, size:int, creation=int(time.time()), modification=int(time.time()), lastread=int(time.time())) -> bytes:
+  def _makefileheader(self, name:bytes, size:int, creation=int(time.time()), modification=int(time.time()), lastread=int(time.time())) -> bytes:
     ret = b""
-    ret += name.ljust(40, '\0') # name
+    ret += name.ljust(40, b'\0') # name
 
     ret += creation.to_bytes(length=8,byteorder='little') # epoch creation
     ret += modification.to_bytes(length=8,byteorder='little') # epoch last modification
@@ -33,18 +33,20 @@ class kfs:
   def __init__(self, file:FileIO):
     self.file = file
 
+    self.file.seek(0, os.SEEK_END)
     size = self.file.tell()
     if size < 512*11: # 11 sectors are required
       raise OverflowError("11 sectors (11*512 bytes) space required for kfs")
 
-    self.root = bytes(self._getsector(7))
-    self.garbagebin = bytes(self._getsector(8))
+    self.root = self._getsector(7)
+    self.garbagebin = self._getsector(8)
 
   def format(self):
     self.file.seek(0, os.SEEK_END)
     size = self.file.tell()
     if size < 512*11: # 11 sectors are required
       raise OverflowError("11 sectors (11*512 bytes) space required for kfs")
+    self.file.seek(0)
     self.file.seek(3) # skip past first 3 bytes
     self.file.write(b"KFS")
     self.file.write((2).to_bytes(length=2,byteorder='little')) # v2
@@ -54,7 +56,7 @@ class kfs:
     if size > 512*11: # add a file to garbage bin with free area
       self.file.write(self._makedirfileentry(11).ljust(512,b'\0')) # make file
       self.file.write(b"\0" * 512)
-      self.file.write(self._makefileheader("", size-(512*11)))
+      self.file.write(self._makefileheader(b"", size-(512*11)))
       self.file.write(self._makefileentry(12, size-(512*11))) 
     else:
       self.file.write(b"\0" * (512*2))
@@ -68,12 +70,41 @@ class kfs:
   def getdata(self, path:str) -> str:
     pass
 
+# to make a disc:
+# python kfs.py -f out.kfs -w --format -add filename1 -add filename2
+
 if __name__ == "__main__":
   from sys import argv
-  cnt = 0
-  while cnt < argv.__len__():
-    i = argv[cnt]
+  dist = 0
 
-    
+  file = ""
+  format_ = False
+  access = 'br'
+  add = []
+  try:
+    while dist < len(argv):
+      i = argv[dist];dist+=1
 
-    cnt+=1
+      if i == "-f" or i == "--file": # select file
+        i = argv[dist];dist+=1
+        file = i
+      if i == "-w": # allow writing
+        access = 'ba+'
+      if i == "-r": # only allow reading
+        access = 'br'
+      if i == "--format": # format if invalid (create a file)
+        format_ = True
+      if i == '-a' or i == "--add": # add a file
+        i = argv[dist];dist+=1
+        try:
+          add.append(open(i,'r'))
+        except:
+          print("File \""+i+"\" Not accessible")
+          quit(-2)
+
+  except IndexError:
+    print("Invalid \""+i+"\"")
+    quit(-1)
+  
+  try: f = open(file,access)
+  except: print("Cant open "+file);quit(-3)
