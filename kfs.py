@@ -24,11 +24,11 @@ class kfs:
     ret += (0).to_bytes(byteorder='little')
     return ret
 
-  def _makedirfileentry(self, pos:int, hash=0):
-    return b""+(2).to_bytes(byteorder='little')+pos.to_bytes(length=8,byteorder='little')+hash.to_bytes(length=16,byteorder='little')
+  def _makedirfileentry(self, pos:int, hash_=0):
+    return b""+(2).to_bytes(byteorder='little')+pos.to_bytes(length=8,byteorder='little')+hash_.to_bytes(length=16,byteorder='little')
 
-  def _makefileentry(self, start, end):
-    pass
+  def _makefileentry(self, start, end, hash_=0):
+    return b""+start.to_bytes(length=8,byteorder='little')+end.to_bytes(length=8,byteorder='little')+hash_.to_bytes(length=8,byteorder='little')
   
   def __init__(self, file:FileIO):
     self.file = file
@@ -70,3 +70,10 @@ class kfs:
 
 if __name__ == "__main__":
   from sys import argv
+  cnt = 0
+  while cnt < argv.__len__():
+    i = argv[cnt]
+
+    
+
+    cnt+=1
