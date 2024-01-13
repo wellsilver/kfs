@@ -57,7 +57,7 @@ class kfs:
       self.file.write(self._makedirfileentry(11).ljust(512,b'\0')) # make file
       self.file.write(b"\0" * 512)
       self.file.write(self._makefileheader(b"", size-(512*11)))
-      self.file.write(self._makefileentry(12, size-(512*11))) 
+      self.file.write(self._makefileentry(12, size-(512*11))) # add free space to file
     else:
       self.file.write(b"\0" * (512*2))
     
@@ -92,7 +92,7 @@ if __name__ == "__main__":
         access = 'ba+'
       if i == "-r": # only allow reading
         access = 'br'
-      if i == "--format": # format if invalid (create a file)
+      if i == "-c": # create a new file
         format_ = True
       if i == '-a' or i == "--add": # add a file
         i = argv[dist];dist+=1
@@ -106,5 +106,22 @@ if __name__ == "__main__":
     print("Invalid \""+i+"\"")
     quit(-1)
   
-  try: f = open(file,access)
-  except: print("Cant open "+file);quit(-3)
+  if format_: 
+    access = "bx"
+    try:
+      f = open(file,'bx+')
+    except:
+      print("Cant make "+file);quit(-3)
+    f.truncate(512*11)
+  else:
+    try: f = open(file,access)
+    except: print("Cant open "+file);quit(-3)
+
+  main=kfs(f)
+
+  if format_:
+    main.format()
+
+  
+
+  main.close()
