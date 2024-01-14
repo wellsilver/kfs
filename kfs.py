@@ -65,13 +65,22 @@ class kfs:
     self.file.close()
 
   def getinfo(self, path:str) -> dict:
-    pass
+    self.root
 
   def getdata(self, path:str) -> str:
     pass
 
+  def getdir(self, path:str) -> dict[str]:
+    pass
+
+  def makefile(self, path:str, data) -> None:
+    pass
+
+  def makedir(self, path:str) -> None:
+    pass
+
 # to make a disc:
-# python kfs.py -f out.kfs -w --format -add filename1 -add filename2
+# python kfs.py -f out.kfs -c -add filename1 -add filename2
 
 if __name__ == "__main__":
   from sys import argv
