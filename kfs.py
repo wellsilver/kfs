@@ -66,24 +66,30 @@ class kfs:
     self.file.close()
 
   def getinfo(self, path:str) -> dict:
-    path = path.split("/")
+    path:dict = path.split("/")
+    if path[0] == '': path.pop(0)
 
   def getdata(self, path:str) -> str:
-    path = path.split("/")
+    path:dict = path.split("/")
+    if path[0] == '': path.pop(0)
 
   def getdir(self, path:str) -> dict[str]:
-    path = path.split("/")
+    path:dict = path.split("/")
+    if path[0] == '': path.pop(0)
 
   def replacefile(self, path:str, data) -> None:
-    path = path.split("/")
+    path:dict = path.split("/")
+    if path[0] == '': path.pop(0)
   
   def makefile(self, path:str, data) -> None:
-    path = path.split("/")
+    path:dict = path.split("/")
+    if path[0] == '': path.pop(0)
 
   def makedir(self, path:str) -> None:
-    path = path.split("/")
+    path:dict = path.split("/")
+    if path[0] == '': path.pop(0)
 
-# to make a disc:
+# to make a kfs file:
 # python kfs.py -f out.kfs -c -add filename1 -add filename2
 
 if __name__ == "__main__":
@@ -92,6 +98,7 @@ if __name__ == "__main__":
 
   file = ""
   format_ = False
+  size = 512*11
   access = 'br'
   add = []
   try:
@@ -105,6 +112,20 @@ if __name__ == "__main__":
         access = 'ba+'
       if i == "-r": # only allow reading
         access = 'br'
+      if i == "-s": # when creating a file truncate to size
+        i = argv[dist];dist+=1
+        if i.lower().endswith("k"): # kilobytes
+          i[-1] = ''
+          size = int(i)*pow(2,10)
+        elif i.lower().endswith("m"): # megabytes
+          i[-1] = ''
+          size = int(i)*pow(2,20)
+        elif i.lower().endswith("g"): # gigabytes
+          i[-1] = ''
+          size = int(i)*pow(2,30)
+        else:
+          size = int(i)
+        
       if i == "-c": # create a new file
         format_ = True
       if i == '-a' or i == "--add": # add a file
@@ -125,7 +146,7 @@ if __name__ == "__main__":
       f = open(file,'bx+')
     except:
       print("Cant make "+file);quit(-3)
-    f.truncate(512*11)
+    f.truncate(size)
   else:
     try: f = open(file,access)
     except: print("Cant open "+file);quit(-3)
