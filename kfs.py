@@ -1,5 +1,6 @@
 # kfs utility
 from io import FileIO
+import cityhash
 import time
 import os
 
@@ -65,19 +66,22 @@ class kfs:
     self.file.close()
 
   def getinfo(self, path:str) -> dict:
-    self.root
+    path = path.split("/")
 
   def getdata(self, path:str) -> str:
-    pass
+    path = path.split("/")
 
   def getdir(self, path:str) -> dict[str]:
-    pass
+    path = path.split("/")
 
+  def replacefile(self, path:str, data) -> None:
+    path = path.split("/")
+  
   def makefile(self, path:str, data) -> None:
-    pass
+    path = path.split("/")
 
   def makedir(self, path:str) -> None:
-    pass
+    path = path.split("/")
 
 # to make a disc:
 # python kfs.py -f out.kfs -c -add filename1 -add filename2
