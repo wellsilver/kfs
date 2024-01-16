@@ -58,7 +58,7 @@ class kfs:
       self.file.write(self._makedirfileentry(11).ljust(512,b'\0')) # make file
       self.file.write(b"\0" * 512)
       self.file.write(self._makefileheader(b"", size-(512*11)))
-      self.file.write(self._makefileentry(12, size-(512*11))) # add free space to file
+      self.file.write(self._makefileentry(12, (size-(512*11))/512)) # add free space to file
     else:
       self.file.write(b"\0" * (512*2))
     
@@ -101,6 +101,7 @@ if __name__ == "__main__":
   size = 512*11
   access = 'br'
   add = []
+  extract = []
   try:
     while dist < len(argv):
       i = argv[dist];dist+=1
@@ -112,6 +113,9 @@ if __name__ == "__main__":
         access = 'ba+'
       if i == "-r": # only allow reading
         access = 'br'
+      if i == "-x": # extract this file with its data (to the current directory)
+        i = argv[dist];dist+=1
+        extract.append()
       if i == "-s": # when creating a file truncate to size
         i = argv[dist];dist+=1
         if i.lower().endswith("k"): # kilobytes
