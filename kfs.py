@@ -65,10 +65,12 @@ class kfs:
   def close(self):
     self.file.close()
 
+  # get info on a file
   def getinfo(self, path:str) -> dict:
     path:dict = path.split("/")
     if path[0] == '': path.pop(0)
 
+  # get data on a file
   def getdata(self, path:str) -> str:
     path:dict = path.split("/")
     if path[0] == '': path.pop(0)
@@ -84,6 +86,7 @@ class kfs:
   def makefile(self, path:str, data) -> None:
     path:dict = path.split("/")
     if path[0] == '': path.pop(0)
+    
 
   def makedir(self, path:str) -> None:
     path:dict = path.split("/")
