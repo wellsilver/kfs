@@ -1,7 +1,7 @@
 # kfs utility
 from io import FileIO
-import cityhash
 import time
+import struct
 import os
 
 class kfs:
@@ -69,28 +69,42 @@ class kfs:
   def getinfo(self, path:str) -> dict:
     path:dict = path.split("/")
     if path[0] == '': path.pop(0)
+    if path[-1] == '': path.pop(-1)
 
   # get data on a file
   def getdata(self, path:str) -> str:
     path:dict = path.split("/")
     if path[0] == '': path.pop(0)
+    if path[-1] == '': path.pop(-1)
 
   def getdir(self, path:str) -> dict[str]:
     path:dict = path.split("/")
     if path[0] == '': path.pop(0)
+    if path[-1] == '': path.pop(-1)
 
   def replacefile(self, path:str, data) -> None:
     path:dict = path.split("/")
     if path[0] == '': path.pop(0)
+    if path[-1] == '': path.pop(-1)
   
   def makefile(self, path:str, data) -> None:
     path:dict = path.split("/")
     if path[0] == '': path.pop(0)
+    if path[-1] == '': path.pop(-1)
     
-
   def makedir(self, path:str) -> None:
     path:dict = path.split("/")
     if path[0] == '': path.pop(0)
+    if path[-1] == '': path.pop(-1)
+    name = path[-1];path.pop(-1) # save the new folders name
+    currentdir = 7
+    for i in path:
+      d = self._getsector(currentdir)
+      begin=0
+      while True: # loop through file entries
+        data = struct.unpack("B Q Q Q", d[begin:begin+(1+4+8)]) # get entry
+        begin+=(1+4+8) # dont stay on the same entry
+        if begin>512: break # dont go past the sector
 
 # to make a kfs file:
 # python kfs.py -f out.kfs -c -add filename1 -add filename2
