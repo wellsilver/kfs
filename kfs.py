@@ -12,6 +12,10 @@ class kfs:
     self.file.seek((sector-1)*512)
     return self.file.read(512)
 
+  def _writesector(self, sector, data):
+    self.file.seek((sector-1)*512)
+    return self.file.write(data)
+
   def _makefileheader(self, name:bytes, size:int, creation=int(time.time()), modification=int(time.time()), lastread=int(time.time())) -> bytes:
     ret = b""
     ret += name.ljust(40, b'\0') # name
@@ -31,6 +35,15 @@ class kfs:
   def _makefileentry(self, start, end, hash_=0):
     return b""+start.to_bytes(length=8,byteorder='little')+end.to_bytes(length=8,byteorder='little')+hash_.to_bytes(length=8,byteorder='little')
   
+  def _dirfindtype(self, data, type_:int):
+    loop=0
+    while loop<len(data): # loop through directory entries to look for type
+      data = struct.unpack("B Q Q Q", data[loop:loop+(1+8+16)]) # get entry
+
+      if data[0] == type_: return data
+      loop+=(1+8+16) # loop
+    return None
+      
   def __init__(self, file:FileIO):
     self.file = file
 
@@ -98,13 +111,34 @@ class kfs:
     if path[-1] == '': path.pop(-1)
     name = path[-1];path.pop(-1) # save the new folders name
     currentdir = 7
+    
+    # get to the sector that contains the folder
     for i in path:
       d = self._getsector(currentdir)
-      begin=0
-      while True: # loop through file entries
-        data = struct.unpack("B Q Q Q", d[begin:begin+(1+4+8)]) # get entry
-        begin+=(1+4+8) # dont stay on the same entry
-        if begin>512: break # dont go past the sector
+      e = self._dirfindtype(d,3)
+      while e!=None:
+        t = self._getsector(e[1])
+        t = self._dirfindtype(t, 1)
+        if self._getsector(t[3]) == i:
+          currentdir = e[1]
+          break
+
+        e=self._dirfindtype(d,3)
+    
+    d = self._getsector(currentdir)
+    # find a free space
+    loop=0
+    while loop<len(data): # loop through directory entries to look for type
+      data = struct.unpack("B Q Q Q", data[loop:loop+(1+8+16)]) # get entry
+
+      if data[0] == 0: return data
+      loop+=(1+8+16) # loop
+    # free space is at loop
+    data[loop:loop] = (3).to_bytes(byteorder='little')
+    data[loop+1:loop+1+8] = (0).to_bytes(byteorder='little') # sector here
+    data[loop+1+8:loop+1+8+16] = (0).to_bytes(length=16)
+    
+
 
 # to make a kfs file:
 # python kfs.py -f out.kfs -c -add filename1 -add filename2
