@@ -137,6 +137,8 @@ class kfs:
     data[loop:loop] = (3).to_bytes(byteorder='little')
     data[loop+1:loop+1+8] = (0).to_bytes(byteorder='little') # sector here
     data[loop+1+8:loop+1+8+16] = (0).to_bytes(length=16)
+
+    self._writesector(currentdir, data)
     
 
 
