@@ -16,6 +16,9 @@ class kfs:
     self.file.seek((sector-1)*512)
     return self.file.write(data)
 
+  def _makespace(self, sector, data):
+    pass
+
   def _makefileheader(self, name:bytes, size:int, creation=int(time.time()), modification=int(time.time()), lastread=int(time.time())) -> bytes:
     ret = b""
     ret += name.ljust(40, b'\0') # name
