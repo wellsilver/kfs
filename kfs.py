@@ -17,7 +17,7 @@ class kfs:
     return self.file.write(data)
 
   # allocates and returns a range of sectors
-  def _makespace(self, sector, size):
+  def _makespace(self, size):
     pass
 
   def _makefileheader(self, name:bytes, size:int, creation=int(time.time()), modification=int(time.time()), lastread=int(time.time())) -> bytes:
