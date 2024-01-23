@@ -18,7 +18,11 @@ class kfs:
 
   # allocates and returns a range of sectors
   def _makespace(self, size):
-    pass
+    garbage = self._getsector(8)
+    # find first file
+    file = self._dirfindtype(garbage, 2)
+    freedata = self._getsector(file[1])
+    struct.unpack("B Q Q", freedata)
 
   def _makefileheader(self, name:bytes, size:int, creation=int(time.time()), modification=int(time.time()), lastread=int(time.time())) -> bytes:
     ret = b""
