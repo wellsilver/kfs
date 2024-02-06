@@ -1,4 +1,7 @@
 # kfs utility
+# todo -> literally everything
+### format.py
+
 from io import FileIO
 import time
 import struct
