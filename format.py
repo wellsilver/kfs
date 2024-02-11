@@ -45,11 +45,13 @@ file.write((2).to_bytes(length=2,byteorder='little')) # v2
 file.write((0).to_bytes(length=8,byteorder='little'))
 file.seek(512*5) # skip past 5 sectors which can be any data
 file.write(b"\0" * (512*1)) # 1 empty sector
-nexts = 12
+dist = 512 # how many bytes are used to make it easy to truncate the sector
+nexts = 12 # the next free sector
 for i in files:
   file.write(_makedirfileentry(nexts)) # where the file entry is for that
+  dist-=len(_makedirfileentry(nexts))
   nexts+=1
+file.write(b'\0'*dist)
 
-file.write(_makedirfileentry(11).ljust(512,b'\0')) # make file
-file.write(b"\0" * 512)
-file.write(_makefileheader(b"", size-(512*11)))
+file.write(_makefileentry(nexts,size)) # give location of free sectors
+file.write(b'\0'*(512-32))
