@@ -49,7 +49,7 @@ if nobootsector==True:
   file.write((2).to_bytes(length=2,byteorder='little')) # v2
   file.write((0).to_bytes(length=8,byteorder='little'))
 else:
-  file.write(boots)
+  file.write(boots.read())
 file.seek(512*5) # skip past 5 sectors which can be any data
 file.write(b"\0" * (512*1)) # 1 empty sector
 dist = 512 # how many bytes are used to make it easy to truncate the sector
