@@ -1,16 +1,20 @@
 # utility for creating kfs2 discs.. until kfs.py is finished
 
-# python format.py *name* *sizeinsectors* *files, first of which is highlighted*
+# python format.py *name* *sizeinsectors* *bootsector file or 0* *files, first of which is highlighted*
 # python format.py test.bin 128 kernel.abc
 from sys import argv
 import time
 
-name = argv[3]
-size = int(argv[4])
-
+name = argv[1]
+size = int(argv[2])
+boots = argv[3]
+nobootsector = True
+if argv[3]!='0':
+  boots=open(argv[3],'r')
+  nobootsector=False
 files_, files = []
 try:
-  files_= argv[6:]
+  files_= argv[4:]
 except IndexError: pass # ignore
 
 sizeneeded = 11
@@ -39,10 +43,13 @@ def _makefileentry(start, end, hash_=0):
 
 file = open()
 
-file.seek(3) # skip past first 3 bytes
-file.write(b"KFS")
-file.write((2).to_bytes(length=2,byteorder='little')) # v2
-file.write((0).to_bytes(length=8,byteorder='little'))
+if nobootsector==True:
+  file.seek(3) # skip past first 3 bytes
+  file.write(b"KFS")
+  file.write((2).to_bytes(length=2,byteorder='little')) # v2
+  file.write((0).to_bytes(length=8,byteorder='little'))
+else:
+  file.write(boots)
 file.seek(512*5) # skip past 5 sectors which can be any data
 file.write(b"\0" * (512*1)) # 1 empty sector
 dist = 512 # how many bytes are used to make it easy to truncate the sector
@@ -53,5 +60,6 @@ for i in files:
   nexts+=1
 file.write(b'\0'*dist)
 
-file.write(_makefileentry(nexts,size)) # give location of free sectors
-file.write(b'\0'*(512-32))
+file.write(_makedirfileentry(11)) # give location of free sectors
+file.write(b'\0'*1024-len(_makedirfileentry(11)))
+
