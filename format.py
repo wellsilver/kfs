@@ -3,6 +3,9 @@
 # python format.py *name* *sizeinsectors* *bootsector file or 0* *files, first of which is highlighted*
 # python format.py test.bin 128 kernel.abc
 from sys import argv
+import math
+from io import TextIOWrapper
+import os
 import time
 
 name = argv[1]
@@ -57,7 +60,9 @@ nexts = 12 # the next free sector
 for i in files:
   file.write(_makedirfileentry(nexts)) # where the file entry is for that
   dist-=len(_makedirfileentry(nexts))
-  nexts+=1
+  nexts += 1
+  i.seek(0, os.SEEK_END) # set the cursor to the end to get file size
+  nexts += math.ciel(i.tell()/512)
 file.write(b'\0'*dist)
 
 file.write(_makedirfileentry(11)) # give location of free sectors
@@ -70,3 +75,24 @@ file.write(_makefileentry(nexts,size))
 l = len(_makefileheader("",size-((nexts-1)*512)))+len(_makefileentry(nexts,size))
 file.write(512-l)
 
+nexts = 12
+dist = 0
+while dist < len(files):
+  files[dist].seek(0, os.SEEK_END)
+  s = math.ciel(files[dist].tell()/512) # size in sectors
+  h = _makefileheader(files_[dist],files[dist].tell())
+
+  nexts+=1 # get past the header lol
+
+  h += _makefileentry(nexts, nexts+s)
+  file.write(h)
+  file.write(b'\0'*(512-len(h))) # truncate
+
+  files[dist].seek(0)
+  data = files[dist].read()
+  file.write(data) # write all data
+  file.write(b'\0'*(512-(data%512))) # truncate last sector
+  
+  files[dist].close()
+
+  nexts += s
