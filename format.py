@@ -91,8 +91,12 @@ while dist < len(files):
   files[dist].seek(0)
   data = files[dist].read()
   file.write(data) # write all data
-  file.write(b'\0'*(512-(data%512))) # truncate last sector
+  file.write(b'\0'*(512-(len(data)%512))) # truncate last sector
   
   files[dist].close()
 
   nexts += s
+  dist+=1
+
+file.write(b'\0'*(size-nexts))
+file.close()
