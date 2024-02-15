@@ -9,25 +9,27 @@ import os
 import time
 
 name = argv[1]
+file = open(name, 'wb')
 size = int(argv[2])
 boots = argv[3]
 nobootsector = True
 if argv[3]!='0':
-  boots=open(argv[3],'r')
+  boots=open(argv[3],'rb')
   nobootsector=False
-files_, files = []
+files_ = []
+files = []
 try:
   files_= argv[4:]
 except IndexError: pass # ignore
 
 sizeneeded = 11
 for i in files_:
-  i = open(i, 'r')
+  i = open(i, 'rb')
   files.append(i)
 
 def _makefileheader(name:bytes, size:int, creation=int(time.time()), modification=int(time.time()), lastread=int(time.time())) -> bytes:
   ret = b""
-  ret += name.ljust(40, b'\0') # name
+  ret += bytes(name,'ascii').ljust(40, b'\0') # name
 
   ret += creation.to_bytes(length=8,byteorder='little') # epoch creation
   ret += modification.to_bytes(length=8,byteorder='little') # epoch last modification
@@ -43,8 +45,6 @@ def _makedirfileentry(pos:int, hash_=0):
 
 def _makefileentry(start, end, hash_=0):
   return b""+start.to_bytes(length=8,byteorder='little')+end.to_bytes(length=8,byteorder='little')+hash_.to_bytes(length=8,byteorder='little')
-
-file = open()
 
 if nobootsector==True:
   file.seek(3) # skip past first 3 bytes
@@ -62,24 +62,24 @@ for i in files:
   dist-=len(_makedirfileentry(nexts))
   nexts += 1
   i.seek(0, os.SEEK_END) # set the cursor to the end to get file size
-  nexts += math.ciel(i.tell()/512)
+  nexts += math.ceil(i.tell()/512)
 file.write(b'\0'*dist)
 
 file.write(_makedirfileentry(11)) # give location of free sectors
-file.write(b'\0'*1024-len(_makedirfileentry(11)))
+file.write(b'\0'*(1024-len(_makedirfileentry(11))))
 
 # garbage
 # make the blank that tells what sectors are free
-file.write(_makefileheader("",size-((nexts-1)*512))) # how many sectors we used vs how much we were allocated
+file.write(_makefileheader("",(size-(nexts-1))*512)) # how many sectors we used vs how much we were allocated
 file.write(_makefileentry(nexts,size))
-l = len(_makefileheader("",size-((nexts-1)*512)))+len(_makefileentry(nexts,size))
-file.write(512-l)
+l = len(_makefileheader("",(size-(nexts-1))*512))+len(_makefileentry(nexts,size))
+file.write(b'\0'*(512-l))
 
 nexts = 12
 dist = 0
 while dist < len(files):
   files[dist].seek(0, os.SEEK_END)
-  s = math.ciel(files[dist].tell()/512) # size in sectors
+  s = math.ceil(files[dist].tell()/512) # size in sectors
   h = _makefileheader(files_[dist],files[dist].tell())
 
   nexts+=1 # get past the header lol
