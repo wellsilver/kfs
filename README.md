@@ -8,100 +8,100 @@ little endian
 
 simple (hopefully)
 
-btw dont trust the tables in here, trust the structures in ``kfs.h`` lol
+hashes are cityhash128 and are optional (set to 0 if not present)
+
+sectors start from 1, 0 is a invalid sector.
+
+btw theres tables in kfs.h of all this stuff which are probably easier to use and read
+
+kfs.h also has a dependency-less implementation of cityhash128 if you need it ``void kfscityhash128(char *in, int size, char out[16])``
+
+### basic driver
+examples kfs.c and kfs.S
+
+read first sector, and use its table to verify
 
 ## overview
-LBA
-| start | end | desc |
-| ----- | ----- | - |
-| 1 | 5 | 5 sectors of 2.56 kilobytes for bootloader |
-| 6 | 6 | fs extender |
-| 7 | 7 | "/" or first folder |
-| 8 | 10| reserved |
-| 11 | ? | data |
+| size (sectors) | desc |
+| - | - |
+| 5 | 2.56 kilobytes for bootloader |
+| 1 | fs extender |
+| 1 | "/" or first folder |
+| 1 | folder "garbage bin" |
+| 1 | reserved |
+| ? | data |
 
-a driver would be keeping the first 10 sectors in memory
+### garbage bin
+- holds all free sectors
+- empty space are unnamed files
+- when files are deleted they can appear in the "garbage bin" and are counted as free space, but can be restored
+
+all files in the garbage bin are free data (but if they are named, they should be removed when used)
+
+### table in first sector
+
+everything after this table can be code
+| type  | desc |
+| ----- | ---- |
+| 3byte | jmp to code, nop |
+| 3byte | "KFS" |
+| u16   | version = 2 |
+| u64   | sector of the file descriptor of a highlighted file |
 
 ### fs extender
-this is for extending the fs past its actual hard drive
+todo
 
-like an entry in here would say that "sectors" 0-500 is the hard drive at sata:0
+### folder
+every entry is 25 bytes
 
-another entry would say that "sectors" 501-600 is a specific file on a ftp server
+descriptor, supposed to first in every sector
+| type | desc |
+| ---- | ---- |
+| u8   | type=1 |
+| u64  | previous sector (of the folder) |
+| u64  | next sector (of the folder) |
+| u64  | sector where the folders name is |
 
-each entry is 64 bytes long leaving 8 entries
+file - gives the sector where the file descriptor is
+| type | desc |
+| ---- | ---- |
+| u8   | type=2 |
+| u64  | sector of file descriptor sector |
+| u128 | hash of file descriptor sector |
 
-empty entrys have the first byte as zero
+directory - gives the sector where the first directory sector is
+| type | desc |
+| ---- | ---- |
+| u8   | type=3 |
+| u64  | sector of first directory sector |
+| u128 | hash of first directory sector |
 
-if blank set first entry type enum to 254
+### file descriptor
+a header then a table of where file data is
+| type | desc |
+| ---- | ---- |
+| str40| name |
+| u64  | epoch creation |
+| u64  | epoch last modification |
+| u64  | epoch last read |
+| u64  | size in bytes      |
+| u8   | compression type   |
+| u8   | encryption type    |
 
-#### entry
-| start | end | type | desc |
-| ----- | --- | ---- | ---- |
-| 0 | 0 | u8  | type enum   |
-| 1 | 8 | u64 | start sector|
-| 9 | 17| u64 | end sector  |
-| 11| 63| ... | type specific data |
+^len of the table is 80
 
-#### type enum
-| num | desc |
-| --- | ---- |
-| 0   | empty |
-| 1   | drive |
-| 254 | blank |
-..
+after the header is all file data entry's
 
+next sector descriptor, the next sector has no header and is a direct continuation of the last entry of the current table
+| type | desc |
+| ---- | ---- |
+| u64  | set to 0 |
+| u64  | the next sector |
+| u128 | hash of the next sector |
 
-### folders
-
-folders contain entrys that point to other files or folders
-
-#### type enum
-| num | desc |
-| --- | ---- |
-| 0   | empty |
-| 1   | descriptor |
-| 2   | filedesc  |
-| 3   | filedata  |
-| 4   | filename  |
-| 5   | folder|
-
-#### entry
-all entrys are 32 bytes large
-
-all
-| start | end | type | desc |
-| ----- | --- | ---- | ---- |
-| 0     | 0   | u8   | type enum |
-
-descriptor - folders cant be of a finite size, this will point to the previous sector for the folder (or 0 if nil) and the next sector of the folder (or 0 if nil) this should be the first entry
-| start | end | type | desc |
-| ----- | --- | ---- | ---- |
-| 1     | 8   | u64  | previous sector |
-| 9     | 17  | u64  | next sector |
-| 18    | 31  | ?    | unused |
-
-filedata - gives a range of sectors associated with a file through a fileID
-| start | end | type | desc |
-| ----- | --- | ---- | ---- |
-| 1     | 8   | u64  | first sector in range |
-| 9     | 17  | u64  | last sector in range  |
-| 18    | 20  | u16  | fileID |
-| 21    | 28  | u64  | the number of ``filedata`` entrys for this file before this entry |
-| 25    | 31  | ?    | unused |
-
-filedesc
-| start | end | type | desc |
-| ----- | --- | ---- | ---- |
-| 1     | 2   | u16  | fileID, only needs to be unique inside a single directory |
-| 3     | 3   | u8   | encryption method |
-| 4     | 4   | u8   | compression method|
-| 5     | 13  | u64  | epoch of creation |
-| 14    | 22  | u64  | epoch of last modification |
-| 14    | 31  | ?    | unused |
-
-filename
-| start | end | type | desc |
-| ----- | --- | ---- | ---- |
-| 1     | 2   | u16  | fileID |
-| 4     | 31  | str(28) | file name |
+data descriptor start,end is a range of sectors.
+| type | desc |
+| ---- | ---- |
+| u64  | start sector |
+| u64  | end sector   |
+| u128 | hash of data |

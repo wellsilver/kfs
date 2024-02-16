@@ -1,87 +1,221 @@
-import sys
+# kfs utility
+# todo -> literally everything
+### format.py
+
+from io import FileIO
 import time
-import io
+import struct
+import os
 
-files = []
-bootfile = None
-size = 0
-
-dist = 0
-
-while dist < len(sys.argv):
-  i = sys.argv[dist]
-  if i == "-boot":
-    dist+=1
-    i = sys.argv[dist]
-    bootfile = open(i,"rb")
+class kfs:
+  root = b"" # first folder "/"
+  garbagebin = b"" # garbage bin
   
-  if i == "-f":
-    files.append((bytes(sys.argv[dist+1],encoding='utf-8'), open(sys.argv[dist+2],"rb") ))
-    dist+=1
+  def _getsector(self, sector):
+    self.file.seek((sector-1)*512)
+    return self.file.read(512)
 
-  if i == "-s":
-    dist+=1
-    i = sys.argv[dist]
+  def _writesector(self, sector, data):
+    self.file.seek((sector-1)*512)
+    return self.file.write(data)
 
-    i = i.replace("M","")
-    size = int(i) * 1000000
+  def _makefileheader(self, name:bytes, size:int, creation=int(time.time()), modification=int(time.time()), lastread=int(time.time())) -> bytes:
+    ret = b""
+    ret += name.ljust(40, b'\0') # name
+
+    ret += creation.to_bytes(length=8,byteorder='little') # epoch creation
+    ret += modification.to_bytes(length=8,byteorder='little') # epoch last modification
+    ret += lastread.to_bytes(length=8,byteorder='little') # epoch last read
+    ret += size.to_bytes(length=8,byteorder='little') # size in bytes
+
+    ret += (0).to_bytes(byteorder='little')
+    ret += (0).to_bytes(byteorder='little')
+    return ret
+
+  def _makedirfileentry(self, pos:int, hash_=0):
+    return b""+(2).to_bytes(byteorder='little')+pos.to_bytes(length=8,byteorder='little')+hash_.to_bytes(length=16,byteorder='little')
+
+  def _makefileentry(self, start, end, hash_=0):
+    return b""+start.to_bytes(length=8,byteorder='little')+end.to_bytes(length=8,byteorder='little')+hash_.to_bytes(length=8,byteorder='little')
   
-  if i == "-o":
-    dist+=1
-    out = open(sys.argv[dist],"wb")
+  def _dirfindtype(self, data, type_:int):
+    loop=0
+    while loop<len(data): # loop through directory entries to look for type
+      data = struct.unpack("B Q Q Q", data[loop:loop+(1+8+16)]) # get entry
+
+      if data[0] == type_: return data
+      loop+=(1+8+16) # loop
+    return None
+      
+  def __init__(self, file:FileIO):
+    self.file = file
+
+    self.file.seek(0, os.SEEK_END)
+    size = self.file.tell()
+    if size < 512*11: # 11 sectors are required
+      raise OverflowError("11 sectors (11*512 bytes) space required for kfs")
+
+    self.root = self._getsector(7)
+    self.garbagebin = self._getsector(8)
+
+  def format(self):
+    self.file.seek(0, os.SEEK_END)
+    size = self.file.tell()
+    if size < 512*11: # 11 sectors are required
+      raise OverflowError("11 sectors (11*512 bytes) space required for kfs")
+    self.file.seek(0)
+    self.file.seek(3) # skip past first 3 bytes
+    self.file.write(b"KFS")
+    self.file.write((2).to_bytes(length=2,byteorder='little')) # v2
+    self.file.write((0).to_bytes(length=8,byteorder='little'))
+    self.file.seek(512*5) # skip past 5 sectors which can be any data
+    self.file.write(b"\0" * (512*2)) # 2 empty sectors
+    if size > 512*11: # add a file to garbage bin with free area
+      self.file.write(self._makedirfileentry(11).ljust(512,b'\0')) # make file
+      self.file.write(b"\0" * 512)
+      self.file.write(self._makefileheader(b"", size-(512*11)))
+      self.file.write(self._makefileentry(12, (size-(512*11))/512)) # add free space to file
+    else:
+      self.file.write(b"\0" * (512*2))
+    
+  def close(self):
+    self.file.close()
+
+  # get info on a file
+  def getinfo(self, path:str) -> dict:
+    path:dict = path.split("/")
+    if path[0] == '': path.pop(0)
+    if path[-1] == '': path.pop(-1)
+
+  # get data on a file
+  def getdata(self, path:str) -> str:
+    path:dict = path.split("/")
+    if path[0] == '': path.pop(0)
+    if path[-1] == '': path.pop(-1)
+
+  def getdir(self, path:str) -> dict[str]:
+    path:dict = path.split("/")
+    if path[0] == '': path.pop(0)
+    if path[-1] == '': path.pop(-1)
+
+  def replacefile(self, path:str, data) -> None:
+    path:dict = path.split("/")
+    if path[0] == '': path.pop(0)
+    if path[-1] == '': path.pop(-1)
   
-  dist+=1
+  def makefile(self, path:str, data) -> None:
+    path:dict = path.split("/")
+    if path[0] == '': path.pop(0)
+    if path[-1] == '': path.pop(-1)
+    
+  def makedir(self, path:str) -> None:
+    path:dict = path.split("/")
+    if path[0] == '': path.pop(0)
+    if path[-1] == '': path.pop(-1)
+    name = path[-1];path.pop(-1) # save the new folders name
+    currentdir = 7
+    
+    # get to the sector that contains the folder
+    for i in path:
+      d = self._getsector(currentdir)
+      e = self._dirfindtype(d,3)
+      while e!=None:
+        t = self._getsector(e[1])
+        t = self._dirfindtype(t, 1)
+        if self._getsector(t[3]) == i:
+          currentdir = e[1]
+          break
 
-try:
-  _ = out
-except:
-  print("did not set -o")
-  quit()
+        e=self._dirfindtype(d,3)
+    
+    d = self._getsector(currentdir)
+    # find a free space
+    loop=0
+    while loop<len(data): # loop through directory entries to look for type
+      data = struct.unpack("B Q Q Q", data[loop:loop+(1+8+16)]) # get entry
 
-if bootfile:
-  bootsec = bootfile.read().ljust(512 * 5,b'\0')
-else:
-  bootsec = b"\0\0\0kfs\0".ljust(512 * 5,b'\0')
+      if data[0] == 0: return data
+      loop+=(1+8+16) # loop
+    # free space is at loop
+    data[loop:loop] = (3).to_bytes(byteorder='little')
+    data[loop+1:loop+1+8] = (0).to_bytes(byteorder='little') # sector here
+    data[loop+1+8:loop+1+8+16] = (0).to_bytes(length=16)
 
-extender = (254).to_bytes(byteorder='little').ljust(512, b'\0') # blank
+    self._writesector(currentdir, data)
+    
 
-folder = b'\1'.ljust(32,b'\0') # fill in descriptor
 
-data = b''
+# to make a kfs file:
+# python kfs.py -f out.kfs -c -add filename1 -add filename2
 
-sectordist = 0
-sectors = dict.fromkeys(range(0, divmod(size,512)[0]))
-for i in sectors:
-  sectors[i] = [None, 0] # which file, and sector in the file
+if __name__ == "__main__":
+  from sys import argv
+  dist = 0
 
-id = 0
-for i in files:
-  id+=1
-  # add the first file descriptor
-  folder += ((2).to_bytes(length=1,byteorder='little') + id.to_bytes(length=2,byteorder='little') + b'\0\0' + int(time.time()).to_bytes(length=8,byteorder='little') + int(time.time()).to_bytes(length=8,byteorder='little')).ljust(32,b'\0')
-  # add the file name
-  folder += ( (4).to_bytes(length=1,byteorder='little') + id.to_bytes(length=2,byteorder='little') + i[0][:28] ).ljust(32,b'\0')
-  # check sector availability and add file descriptor file data added later to not overload memory
-  fl = len(i[1].read())
-  fsize = (fl // 512) + 1 # size in sectors we need to allocate
-  i[1].seek(0)
-  for v in range(sectordist,fsize):
-    sectors[v] = [i[1], v-sectordist]
+  file = ""
+  format_ = False
+  size = 512*11
+  access = 'br'
+  add = []
+  extract = []
+  try:
+    while dist < len(argv):
+      i = argv[dist];dist+=1
+
+      if i == "-f" or i == "--file": # select file
+        i = argv[dist];dist+=1
+        file = i
+      if i == "-w": # allow writing
+        access = 'ba+'
+      if i == "-r": # only allow reading
+        access = 'br'
+      if i == "-x": # extract this file with its data (to the current directory)
+        i = argv[dist];dist+=1
+        extract.append()
+      if i == "-s": # when creating a file truncate to size
+        i = argv[dist];dist+=1
+        if i.lower().endswith("k"): # kilobytes
+          i[-1] = ''
+          size = int(i)*pow(2,10)
+        elif i.lower().endswith("m"): # megabytes
+          i[-1] = ''
+          size = int(i)*pow(2,20)
+        elif i.lower().endswith("g"): # gigabytes
+          i[-1] = ''
+          size = int(i)*pow(2,30)
+        else:
+          size = int(i)
+        
+      if i == "-c": # create a new file
+        format_ = True
+      if i == '-a' or i == "--add": # add a file
+        i = argv[dist];dist+=1
+        try:
+          add.append(open(i,'r'))
+        except:
+          print("File \""+i+"\" Not accessible")
+          quit(-2)
+
+  except IndexError:
+    print("Invalid \""+i+"\"")
+    quit(-1)
   
-  folder += ( (3).to_bytes(length=1,byteorder='little') + (sectordist+11).to_bytes(length=8,byteorder='little') + ((sectordist+fsize)+11).to_bytes(length=8,byteorder='little') + id.to_bytes(length=2,byteorder='little')).ljust(32,b'\0')
+  if format_: 
+    access = "bx"
+    try:
+      f = open(file,'bx+')
+    except:
+      print("Cant make "+file);quit(-3)
+    f.truncate(size)
+  else:
+    try: f = open(file,access)
+    except: print("Cant open "+file);quit(-3)
 
+  main=kfs(f)
 
-out.write(bootsec + extender + folder + b''.ljust(512 * 2, b'\0'))
-# ^ ignore typecheck err
+  if format_:
+    main.format()
 
-# we've written the first 10 sectors, time to handle files
+  
 
-for i in sectors:
-  i = sectors[i]
-  if i[0] == None:
-    break
-  i[0].seek(i[1]*512)
-  out.write(i[0].read())
-# whats with all the false typechecker errors?
-
-out.close()
+  main.close()
