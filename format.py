@@ -54,7 +54,7 @@ if nobootsector==True:
 else:
   file.write(boots.read())
 file.seek(512*5) # skip past 5 sectors which can be any data
-file.write(b"\0" * (512*1)) # 1 empty sector
+file.write(b"\0" * 512) # 1 empty sector
 dist = 512 # how many bytes are used to make it easy to truncate the sector
 nexts = 12 # the next free sector
 for i in files:
@@ -66,7 +66,9 @@ for i in files:
 file.write(b'\0'*dist)
 
 file.write(_makedirfileentry(11)) # give location of free sectors
-file.write(b'\0'*(1024-len(_makedirfileentry(11))))
+file.write(b'\0'*(512-len(_makedirfileentry(11))))
+
+file.write(b'\0'*1024) # skip 2 sectors
 
 # garbage
 # make the blank that tells what sectors are free
