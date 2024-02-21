@@ -50,7 +50,10 @@ if nobootsector==True:
   file.seek(3) # skip past first 3 bytes
   file.write(b"KFS")
   file.write((2).to_bytes(length=2,byteorder='little')) # v2
-  file.write((0).to_bytes(length=8,byteorder='little'))
+  if len(files)>0:
+    file.write((12).to_bytes(length=8,byteorder='little')) # first file will allways be at sector 12
+  else:
+    file.write((0).to_bytes(length=8,byteorder='little'))
 else:
   file.write(boots.read())
 file.seek(512*5) # skip past 5 sectors which can be any data
