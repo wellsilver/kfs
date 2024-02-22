@@ -86,7 +86,6 @@ while dist < len(files):
   files[dist].seek(0, os.SEEK_END)
   s = math.ceil(files[dist].tell()/512) # size in sectors
   h = _makefileheader(files_[dist],files[dist].tell())
-
   nexts+=1 # get past the header lol
 
   h += _makefileentry(nexts, nexts+s)

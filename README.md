@@ -88,7 +88,7 @@ a header then a table of where file data is
 | u8   | compression type   |
 | u8   | encryption type    |
 
-^len of the table is 80
+^len of the table is 74
 
 after the header is all file data entry's
 
