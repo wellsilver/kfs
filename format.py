@@ -78,7 +78,7 @@ file.write(b'\0'*1024) # skip 2 sectors
 file.write(_makefileheader("",(size-(nexts-1))*512)) # how many sectors we used vs how much we were allocated
 file.write(_makefileentry(nexts,size))
 l = len(_makefileheader("",(size-(nexts-1))*512))+len(_makefileentry(nexts,size))
-file.write(b'\0'*(512-l))
+file.write(b'\0'*(1024-l))
 
 nexts = 12
 dist = 0
