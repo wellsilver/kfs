@@ -28,7 +28,7 @@ read first sector, and use its table to verify
 | 1 | fs extender |
 | 1 | "/" or first folder |
 | 1 | folder "garbage bin" |
-| 1 | reserved |
+| 2 | reserved |
 | ? | data |
 
 ### garbage bin

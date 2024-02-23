@@ -71,14 +71,14 @@ file.write(b'\0'*dist)
 file.write(_makedirfileentry(11)) # give location of free sectors
 file.write(b'\0'*(512-len(_makedirfileentry(11))))
 
-file.write(b'\0'*1024) # skip 2 sectors
+file.write(b'\0'*1536) # skip 3 sectors
 
 # garbage
 # make the blank that tells what sectors are free
 file.write(_makefileheader("",(size-(nexts-1))*512)) # how many sectors we used vs how much we were allocated
 file.write(_makefileentry(nexts,size))
 l = len(_makefileheader("",(size-(nexts-1))*512))+len(_makefileentry(nexts,size))
-file.write(b'\0'*(1024-l))
+file.write(b'\0'*(512-l))
 
 nexts = 12
 dist = 0
