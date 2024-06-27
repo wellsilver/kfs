@@ -10,13 +10,10 @@ struct kfs_bootsec {
 };
 
 struct kfs_folder {
-  // blank. this is a table, however all entrys are this size
-  struct {
-    char type;
-    long long x;
-    long long y;
-    long long z;
-  } entries;
+  char type;
+  long long x;
+  long long y;
+  long long z;
 };
 
 struct kfs_folder1entry {
