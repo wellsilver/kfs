@@ -16,6 +16,13 @@ btw theres tables in kfs.h of all this stuff which are probably easier to use an
 
 kfs.h also has a dependency-less implementation of cityhash128 if you need it ``void kfscityhash128(char *in, int size, char out[16])``
 
+### kfs.py
+tool for working with kfs image files
+
+python kfs.py -f out.kfs -c -add filename1 -add filename2
+
+also works as a library
+
 ### basic driver
 examples kfs.c and kfs.S
 
