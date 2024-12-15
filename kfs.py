@@ -35,9 +35,9 @@ class kfs:
   def _makedirfileentry(self, pos:int, hash_=0):
     return b""+(2).to_bytes(byteorder='little')+pos.to_bytes(length=8,byteorder='little')+hash_.to_bytes(length=16,byteorder='little')
 
-  def _makefileentry(self, start, end, hash_=0):
+  def _makefileentry(self, start:int, end:int, hash_=0):
     return b""+start.to_bytes(length=8,byteorder='little')+end.to_bytes(length=8,byteorder='little')+hash_.to_bytes(length=8,byteorder='little')
-  
+
   def _dirfindtype(self, data, type_:int):
     loop=0
     while loop<len(data): # loop through directory entries to look for type
@@ -69,12 +69,11 @@ class kfs:
     self.file.write((2).to_bytes(length=2,byteorder='little')) # v2
     self.file.write((0).to_bytes(length=8,byteorder='little'))
     self.file.seek(512*5) # skip past 5 sectors which can be any data
-    self.file.write(b"\0" * (512*2)) # 2 empty sectors
-    self.file.write(self._makedirfileentry(11).ljust(512,b'\0')) # make file
-    self.file.write(b"\0" * 512)
+    self.file.write(b"\0" * (512*2)) # 2 empty sectors (fs extender, root dir)
+    self.file.write(self._makedirfileentry(11)) # make file entry in garbage bin
+    self.file.seek(512*10) # to the 11'th sector (LBA 10 from zero)
     self.file.write(self._makefileheader(b"", size-(512*11)))
-    self.file.write(self._makefileentry(12, (size-(512*11))/512)) # add free space to file
-    
+    self.file.write(self._makefileentry(12, int((size-(512*11))/512))) # add free space to file
     
   def close(self):
     self.file.close()
