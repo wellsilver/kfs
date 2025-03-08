@@ -55,7 +55,6 @@ struct kfs_file {
   unsigned long long size; // uint64_t size in bytes
   unsigned char compression; // compression type
   unsigned char encryption; // encryption type
-  struct kfs_fileentry entries[13];
 };
 
 // A dependencyless implementation of google's cityhash128. out is the uint128_t
