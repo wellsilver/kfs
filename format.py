@@ -46,16 +46,16 @@ def _makedirfileentry(pos:int, hash_=0):
 def _makefileentry(start, end, hash_=0):
   return b""+start.to_bytes(length=8,byteorder='little')+end.to_bytes(length=8,byteorder='little')+hash_.to_bytes(length=16,byteorder='little')
 
-if nobootsector==True:
-  file.seek(3) # skip past first 3 bytes
-  file.write(b"KFS")
-  file.write((2).to_bytes(length=2,byteorder='little')) # v2
-  if len(files)>0:
-    file.write((12).to_bytes(length=8,byteorder='little')) # first file will allways be at sector 12
-  else:
-    file.write((0).to_bytes(length=8,byteorder='little'))
-else:
+if nobootsector==False:
   file.write(boots.read())
+file.seek(3) # skip past first 3 bytes
+file.write(b"KFS")
+file.write((2).to_bytes(length=2,byteorder='little')) # v2
+if len(files)>0:
+  file.write((12).to_bytes(length=8,byteorder='little')) # first file will allways be at sector 12
+else:
+  file.write((0).to_bytes(length=8,byteorder='little'))
+
 file.seek(512*5) # skip past 5 sectors which can be any data
 file.write(b"\0" * 512) # 1 empty sector
 dist = 512 # how many bytes are used to make it easy to truncate the sector
