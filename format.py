@@ -102,5 +102,5 @@ while dist < len(files):
   nexts += s
   dist+=1
 
-file.write(b'\0'*(size-nexts))
+file.write(b'\0'*file.tell()%512)
 file.close()
