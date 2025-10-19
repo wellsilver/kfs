@@ -88,7 +88,8 @@ while dist < len(files):
   h = _makefileheader(files_[dist],files[dist].tell())
   nexts+=1 # get past the header lol
 
-  h += _makefileentry(nexts, nexts+s)
+  print(s)
+  h += _makefileentry(nexts, s)
   file.write(h)
   file.write(b'\0'*(512-len(h))) # truncate
 
