@@ -36,12 +36,12 @@ def _makefileheader(name:bytes, size:int, creation=int(time.time()), modificatio
   ret += lastread.to_bytes(length=8,byteorder='little') # epoch last read
   ret += size.to_bytes(length=8,byteorder='little') # size in bytes
 
-  ret += (0).to_bytes(byteorder='little')
-  ret += (0).to_bytes(byteorder='little')
+  ret += (0).to_bytes(length=1,byteorder='little')
+  ret += (0).to_bytes(length=1,byteorder='little')
   return ret
 
 def _makedirfileentry(pos:int, hash_=0):
-  return b""+(2).to_bytes(byteorder='little')+pos.to_bytes(length=8,byteorder='little')+hash_.to_bytes(length=16,byteorder='little')
+  return b""+(2).to_bytes(length=1,byteorder='little')+pos.to_bytes(length=8,byteorder='little')+hash_.to_bytes(length=16,byteorder='little')
 
 def _makefileentry(start, end, hash_=0):
   return b""+start.to_bytes(length=8,byteorder='little')+end.to_bytes(length=8,byteorder='little')+hash_.to_bytes(length=16,byteorder='little')
